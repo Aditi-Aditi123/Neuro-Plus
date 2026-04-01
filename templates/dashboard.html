@@ -1,6 +1,145 @@
 {% extends "base.html" %}
 {% block title %}Home - Neuro Plus{% endblock %}
+
+{% block extra_css %}
+<style>
+  .home-hero {
+    width: 100%;
+    padding: 2rem 0 1rem;
+  }
+
+  .home-hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0A3D2E;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .home-hero h1 span {
+    color: #1D9E75;
+  }
+
+  .home-hero p.tagline {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.7;
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 1rem;
+  }
+
+  .feature-card {
+    background: #fff;
+    border: 1px solid #9FE1CB;
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+
+  .feature-card:hover {
+    box-shadow: 0 6px 24px rgba(29,158,117,0.13);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    font-size: 30px;
+    margin-bottom: 12px;
+  }
+
+  .feature-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #085041;
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .feature-card .badge {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #E1F5EE;
+    color: #0F6E56;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .home-welcome-strip {
+    background: #E1F5EE;
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #0F6E56;
+    font-weight: 500;
+  }
+
+  @media (max-width: 600px) {
+    .home-hero h1 { font-size: 24px; }
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2 style="color:#0F6E56;">Welcome, {{ current_user.name }}! 👋</h2>
-<p style="color:#555; margin-top:8px;">Choose an activity from the menu above to get started.</p>
+<div class="home-hero">
+
+  <div class="home-welcome-strip">
+    👋 &nbsp;Welcome back, <strong>{{ current_user.name }}</strong>!
+  </div>
+
+  <h1>Learning made <span>fun</span> for every mind.</h1>
+  <p class="tagline">
+    Neuro-Plus is a supportive learning platform designed for children with dyslexia, ADHD, and other learning differences. Practice speech, build confidence, and track your progress — all in one friendly place.
+  </p>
+
+  <div class="feature-grid">
+    <a class="feature-card" href="/speech">
+      <div class="feature-icon">🎙️</div>
+      <h3>Speech Practice</h3>
+      <p>Read sentences out loud and get instant feedback. Build clarity, fluency, and confidence one sentence at a time.</p>
+      <span class="badge">Available now</span>
+    </a>
+
+    <div class="feature-card" style="opacity:0.6; cursor:default;">
+      <div class="feature-icon">📖</div>
+      <h3>Reading Games</h3>
+      <p>Fun, interactive reading exercises tailored to your pace and learning style. Coming soon!</p>
+      <span class="badge" style="background:#f0f0f0; color:#999;">Coming soon</span>
+    </div>
+
+    <div class="feature-card" style="opacity:0.6; cursor:default;">
+      <div class="feature-icon">🧩</div>
+      <h3>Focus Puzzles</h3>
+      <p>Short attention and memory activities designed to make concentration feel like play.</p>
+      <span class="badge" style="background:#f0f0f0; color:#999;">Coming soon</span>
+    </div>
+
+    <div class="feature-card" style="opacity:0.6; cursor:default;">
+      <div class="feature-icon">📊</div>
+      <h3>Progress Reports</h3>
+      <p>Parents and teachers can view detailed reports on learning streaks, scores, and improvements over time.</p>
+      <span class="badge" style="background:#f0f0f0; color:#999;">Coming soon</span>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -12,39 +12,71 @@
 <body>
 
   <nav class="navbar">
-    <div class="nav-left">
-      <a href="/dashboard" class="nav-logo">&#129504; Neuro-Plus</a>
+    <!-- Logo: leftmost -->
+    <div class="logo">
+      <a href="/dashboard">Neuro-Plus</a>
     </div>
 
-    <div class="nav-center">
-      <a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>&#127968; Home</a>
-      <a href="/speech" {% if request.path == '/speech' %}class="active"{% endif %}>&#127908; Speech</a>
-    </div>
+    <!-- Nav links + avatar: rightmost on desktop -->
+    <div style="display:flex; align-items:center; gap:20px;">
+      <ul class="nav-links">
+        <li>
+          <a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>Home</a>
+        </li>
+        <li>
+          <a href="/speech" {% if request.path == '/speech' %}class="active"{% endif %}>Speech</a>
+        </li>
+      </ul>
 
-    <div class="nav-right">
-      <button type="button" class="nav-account-btn" id="navAccountBtn">
-        <div class="nav-avatar">
-          {{ current_user.name[0]|upper if current_user.name else 'U' }}
-        </div>
-        <span>{{ current_user.name }}</span>
-        <span class="nav-chevron">&#9660;</span>
+      <ul class="nav-right">
+        <li class="account">
+          <button type="button" id="navAccountBtn" title="{{ current_user.name }}">
+            <span class="avatar">
+              {{ current_user.name[0]|upper if current_user.name else 'U' }}
+            </span>
+          </button>
+
+          <ul class="dropdown" id="navDropdown">
+            <li class="dropdown-header">
+              <div>{{ current_user.name }}</div>
+              <div>{{ current_user.email }}</div>
+            </li>
+            <li><a href="/logout">Log out</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Burger (mobile only) -->
+      <button class="burger" id="burgerBtn" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
-
-      <div class="nav-dropdown" id="navDropdown">
-        <div class="nav-dropdown-header">
-          <div class="nav-dropdown-name">{{ current_user.name }}</div>
-          <div class="nav-dropdown-email">{{ current_user.email }}</div>
-        </div>
-        <a href="/logout" class="nav-dropdown-item">&#128682; Logout</a>
-      </div>
     </div>
   </nav>
+
+  <!-- Mobile slide-down menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>Home</a></li>
+      <li><a href="/speech" {% if request.path == '/speech' %}class="active"{% endif %}>Speech</a></li>
+    </ul>
+    <hr class="mobile-menu-divider">
+    <ul>
+      <li style="padding: 8px 14px;">
+        <div style="font-size:13px; font-weight:600; color:#5DCAA5;">{{ current_user.name }}</div>
+        <div style="font-size:12px; color:#7fbbaa; margin-top:2px;">{{ current_user.email }}</div>
+      </li>
+      <li><a href="/logout">Log out</a></li>
+    </ul>
+  </div>
 
   <div class="page-content">
     {% block content %}{% endblock %}
   </div>
 
   <script>
+    // Desktop avatar dropdown
     const navBtn = document.getElementById("navAccountBtn");
     const navDropdown = document.getElementById("navDropdown");
 
@@ -53,10 +85,28 @@
         e.stopPropagation();
         navDropdown.classList.toggle("open");
       });
-
       document.addEventListener("click", function (e) {
         if (!navBtn.contains(e.target) && !navDropdown.contains(e.target)) {
           navDropdown.classList.remove("open");
+        }
+      });
+    }
+
+    // Burger menu (mobile)
+    const burgerBtn = document.getElementById("burgerBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    if (burgerBtn && mobileMenu) {
+      burgerBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        mobileMenu.classList.toggle("open");
+        // Animate burger lines
+        burgerBtn.classList.toggle("active");
+      });
+      document.addEventListener("click", function (e) {
+        if (!burgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+          mobileMenu.classList.remove("open");
+          burgerBtn.classList.remove("active");
         }
       });
     }

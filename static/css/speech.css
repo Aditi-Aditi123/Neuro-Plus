@@ -1,7 +1,7 @@
 .sp-container {
   display: flex;
   gap: 24px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .sp-main {
@@ -13,7 +13,7 @@
 }
 
 .sp-sidebar {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -87,6 +87,8 @@
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  flex: 1;
+  justify-content: center;
 }
 
 .mic-hint { font-size: 13px; color: #888; }
@@ -165,6 +167,7 @@
   border: 1px solid #9FE1CB;
   border-radius: 14px;
   padding: 1rem 1.25rem;
+  flex: 1;
 }
 
 .history-title { font-size: 13px; font-weight: 600; color: #085041; margin-bottom: 10px; }

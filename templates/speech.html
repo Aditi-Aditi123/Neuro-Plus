@@ -176,20 +176,20 @@
 
     if (sim >= 0.85) {
       box.className = 'result-box correct';
-      label.textContent = 'Amazing! You got it!';
+      label.textContent = 'Correct Answer!';
       detail.textContent = 'You said: "' + spoken + '"';
       badge.innerHTML = '<span class="badge-pill">Clear Speech Badge!</span>';
-      buddy.textContent = "Wow, superstar! That was perfect! I am so proud of you!";
+      buddy.textContent = "Amazing! You got it, superstar! That was perfect! I am so proud of you!";
       isCorrect = true;
     } else if (sim >= 0.5) {
       box.className = 'result-box close';
-      label.textContent = 'So close! Great try!';
+      label.textContent = 'Wrong Answer!';
       detail.innerHTML = 'You said: "' + spoken + '"<br>Target: "' + current + '"';
       badge.innerHTML = '<span class="badge-pill yellow">Nice Try!</span>';
-      buddy.textContent = "That was really good! Try once more and you will nail it!";
+      buddy.textContent = " Try once more and you will nail it!";
     } else {
       box.className = 'result-box wrong';
-      label.textContent = 'Keep trying, you can do it!';
+      label.textContent = 'Wrong answer!';
       detail.innerHTML = 'You said: "' + spoken + '"<br>The sentence was: "' + current + '"';
       badge.innerHTML = '';
       buddy.textContent = "No worries at all! Let us try again — I believe in you!";
