@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Speech Practice - Neuro Plus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/speech.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="sp-container">
+
+  <div class="sp-main">
+    <div class="buddy-box">
+      <div class="buddy-face">&#129302;</div>
+      <div class="buddy-msg" id="buddy-msg">
+        Hey {{ current_user.name }}! Read the sentence below out loud. I'm listening!
+      </div>
+    </div>
+
+    <div class="sentence-box">
+      <div class="sentence-label">Say this sentence!</div>
+      <div class="sentence-text" id="sentence-display"></div>
+    </div>
+
+    <div class="result-box" id="result-box" style="display:none;">
+      <div class="result-label" id="result-label"></div>
+      <div class="result-detail" id="result-detail"></div>
+      <div id="badge-area"></div>
+    </div>
+
+    <div class="mic-card">
+      <div class="mic-hint" id="mic-hint">Tap the mic and start speaking!</div>
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()">
+        <svg viewBox="0 0 24 24" fill="white" width="32" height="32">
+          <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-1 14.93V20H9v2h6v-2h-2v-2.07A7 7 0 0 0 19 11h-2a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93z"/>
+        </svg>
+      </button>
+      <div class="btn-row">
+        <button class="skip-btn" onclick="skipSentence()">Skip sentence &#8617;</button>
+        <button class="skip-btn" id="next-btn" style="display:none;" onclick="nextSentence()">Next sentence &#10145;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-sidebar">
+    <div class="score-card">
+      <div class="score-label">Today's score</div>
+      <div class="score-val" id="today-score">{{ today_score }}</div>
+      <div class="score-sub">correct today</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Max score</div>
+      <div class="score-val" id="best-score">{{ best_score }}</div>
+      <div class="score-sub">personal best</div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-label">&#128293; Streak</div>
+      <div class="streak-val" id="streak-val">{{ streak }}</div>
+      <div class="streak-sub">days in a row</div>
+    </div>
+    <div class="history-card">
+      <div class="history-title">Past days</div>
+      {% if history %}
+        {% for entry in history %}
+          <div class="history-item">
+            <span class="history-date">{{ entry.date }}</span>
+            <span class="history-score">{{ entry.score }} &#10003;</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="history-empty">No history yet!</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const sentences = [
+    "The cat sat on the mat.",
+    "I like to eat apples.",
+    "The sun is bright today.",
+    "Dogs love to play fetch.",
+    "She reads a book every night.",
+    "The bird flew over the tree.",
+    "My favorite color is blue.",
+    "He runs fast in the morning.",
+    "We play in the park together.",
+    "The stars shine in the night sky.",
+    "I brush my teeth every morning.",
+    "The rabbit hopped across the garden.",
+    "She smiled and waved hello.",
+    "I love rainy days with hot cocoa.",
+    "The puppy wagged its fluffy tail."
+  ];
+
+  let used = [], current = '', recording = false, recognition = null;
+  let todayScore = {{ today_score }};
+
+  function getSentence() {
+    if (used.length >= sentences.length) used = [];
+    let pool = sentences.filter(s => !used.includes(s));
+    let s = pool[Math.floor(Math.random() * pool.length)];
+    used.push(s);
+    return s;
+  }
+
+  function loadSentence() {
+    current = getSentence();
+    document.getElementById('sentence-display').textContent = current;
+    document.getElementById('result-box').style.display = 'none';
+    document.getElementById('next-btn').style.display = 'none';
+    document.getElementById('buddy-msg').textContent = "Read the sentence out loud — I believe in you!";
+    document.getElementById('mic-hint').textContent = 'Tap the mic and start speaking!';
+  }
+
+  function skipSentence() { loadSentence(); }
+  function nextSentence() { loadSentence(); }
+
+  function toggleMic() {
+    if (!recording) startRecording();
+    else stopRecording();
+  }
+
+  function startRecording() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert('Please use Google Chrome for speech recognition!');
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = e => { showResult(e.results[0][0].transcript); };
+    recognition.onend = () => { setMicOff(); };
+    recognition.onerror = () => { setMicOff(); };
+    recognition.start();
+    recording = true;
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-hint').textContent = 'Listening... speak now!';
+  }
+
+  function stopRecording() {
+    if (recognition) recognition.stop();
+    setMicOff();
+  }
+
+  function setMicOff() {
+    recording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-hint').textContent = 'Tap the mic and start speaking!';
+  }
+
+  function normalize(s) {
+    return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+  }
+
+  function similarity(a, b) {
+    const wa = normalize(a).split(' ');
+    const wb = normalize(b).split(' ');
+    const match = wa.filter(w => wb.includes(w)).length;
+    return match / Math.max(wa.length, wb.length);
+  }
+
+  function showResult(spoken) {
+    const sim = similarity(spoken, current);
+    const box = document.getElementById('result-box');
+    const label = document.getElementById('result-label');
+    const detail = document.getElementById('result-detail');
+    const badge = document.getElementById('badge-area');
+    const buddy = document.getElementById('buddy-msg');
+
+    box.style.display = 'block';
+    document.getElementById('next-btn').style.display = 'inline-block';
+    let isCorrect = false;
+
+    if (sim >= 0.85) {
+      box.className = 'result-box correct';
+      label.textContent = 'Amazing! You got it!';
+      detail.textContent = 'You said: "' + spoken + '"';
+      badge.innerHTML = '<span class="badge-pill">Clear Speech Badge!</span>';
+      buddy.textContent = "Wow, superstar! That was perfect! I am so proud of you!";
+      isCorrect = true;
+    } else if (sim >= 0.5) {
+      box.className = 'result-box close';
+      label.textContent = 'So close! Great try!';
+      detail.innerHTML = 'You said: "' + spoken + '"<br>Target: "' + current + '"';
+      badge.innerHTML = '<span class="badge-pill yellow">Nice Try!</span>';
+      buddy.textContent = "That was really good! Try once more and you will nail it!";
+    } else {
+      box.className = 'result-box wrong';
+      label.textContent = 'Keep trying, you can do it!';
+      detail.innerHTML = 'You said: "' + spoken + '"<br>The sentence was: "' + current + '"';
+      badge.innerHTML = '';
+      buddy.textContent = "No worries at all! Let us try again — I believe in you!";
+    }
+
+    if (isCorrect) {
+      todayScore++;
+      document.getElementById('today-score').textContent = todayScore;
+      fetch('/speech/save-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: todayScore })
+      });
+    }
+  }
+
+  loadSentence();
+</script>
+{% endblock %}

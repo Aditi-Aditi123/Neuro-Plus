@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Neuro-Plus{% endblock %}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/dashboard" class="nav-logo">&#129504; Neuro-Plus</a>
+    </div>
+
+    <div class="nav-center">
+      <a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>&#127968; Home</a>
+      <a href="/speech" {% if request.path == '/speech' %}class="active"{% endif %}>&#127908; Speech</a>
+    </div>
+
+    <div class="nav-right">
+      <button type="button" class="nav-account-btn" id="navAccountBtn">
+        <div class="nav-avatar">
+          {{ current_user.name[0]|upper if current_user.name else 'U' }}
+        </div>
+        <span>{{ current_user.name }}</span>
+        <span class="nav-chevron">&#9660;</span>
+      </button>
+
+      <div class="nav-dropdown" id="navDropdown">
+        <div class="nav-dropdown-header">
+          <div class="nav-dropdown-name">{{ current_user.name }}</div>
+          <div class="nav-dropdown-email">{{ current_user.email }}</div>
+        </div>
+        <a href="/logout" class="nav-dropdown-item">&#128682; Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    const navBtn = document.getElementById("navAccountBtn");
+    const navDropdown = document.getElementById("navDropdown");
+
+    if (navBtn && navDropdown) {
+      navBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        navDropdown.classList.toggle("open");
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!navBtn.contains(e.target) && !navDropdown.contains(e.target)) {
+          navDropdown.classList.remove("open");
+        }
+      });
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
