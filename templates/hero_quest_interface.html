@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Top Control -->
+<div class="position-absolute top-0 end-0 p-3 z-index-master">
+    <button id="toggleViewBtn" class="btn btn-sm btn-outline-light">Switch to {% if is_parent %}Hero{% else %}Parent{%
+        endif %} View</button>
+</div>
+
+{% if is_parent %}
+<!--PARENT VIEW-->
+<div class="container py-5">
+    <h1 class="text-center text-white mb-4">🛡️ Parent Audit Dashboard</h1>
+
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3 text-white">Pending Quests ({{ pending_submissions | length }})</h3>
+            {% if not pending_submissions %}
+            <div class="alert alert-info text-center form-card rounded-xl">No quests pending review! 🎉</div>
+            {% else %}
+            <div class="row g-4">
+                {% for sub in pending_submissions %}
+                <div class="col-md-6 col-lg-4" id="submission-{{ sub.id }}">
+                    <div class="card bg-slate form-card rounded-xl shadow-lg border-0 h-100 p-2">
+                        <div
+                            style="position: relative; border-radius: 12px; overflow: hidden; background: #000; display: flex; align-items:center; justify-content:center; height: 200px;">
+                            {% if sub.file_path.endswith('.mp4') or sub.file_path.endswith('.mov') %}
+                            <video src="{{ '/' + sub.file_path }}" class="img-fluid" controls
+                                style="max-height: 100%;"></video>
+                            {% else %}
+                            <img src="{{ '/' + sub.file_path }}" class="img-fluid"
+                                style="object-fit: cover; width: 100%; height: 100%;">
+                            {% endif %}
+                            <div class="sticker-overlay">{{ sub.sticker }}</div>
+                        </div>
+                        <div class="card-body">
+                            {% set q_match = quests | selectattr("id", "equalto", sub.quest_id) | list %}
+                            <h5 class="card-title text-white">Quest: {{ q_match[0].title if q_match else 'Unknown' }}
+                            </h5>
+                            <div class="metadata-box mt-3 p-2 bg-navy rounded">
+                                <small class="d-block text-muted">Time taken:</small>
+                                <span class="text-light">{{ sub.metadata.timestamp }}</span>
+
+                                <small class="d-block text-muted mt-2">Location Status:</small>
+                                <span class="text-light">
+                                    {{ sub.metadata.location }}
+                                    {% if sub.metadata.status_flag == 'On Time' %}
+                                    <span class="badge bg-success ms-1">OK</span>
+                                    {% else %}
+                                    <span class="badge bg-warning ms-1">Flagged</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <button class="btn btn-primary w-100 mt-3 btn-approve fw-bold"
+                                data-sub-id="{{ sub.id }}">Approve & Reward</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr class="text-secondary my-5">
+    <h2 class="text-center text-white mb-4">📋 Manage Tasks</h2>
+    <div class="row">
+        <div class="col-md-7 mb-4">
+            <h4 class="text-white">Current Tasks</h4>
+            <ul class="list-group shadow">
+                {% for quest in quests %}
+                <li
+                    class="list-group-item d-flex justify-content-between align-items-center bg-dark text-white border-secondary">
+                    <div>
+                        <span class="fs-4 me-2">{{ quest.icon }}</span>
+                        <strong>{{ quest.title }}</strong> - <small class="text-muted">{{ quest.xp_reward }} XP</small>
+                    </div>
+                    <button class="btn btn-sm btn-danger remove-task-btn fw-bold" data-quest-id="{{ quest.id }}">🗑️
+                        Remove</button>
+                </li>
+                {% else %}
+                <li class="list-group-item bg-dark text-white border-secondary">No tasks available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-5 mb-4">
+            <h4 class="text-white">Add New Task</h4>
+            <div class="card bg-dark text-white border-secondary h-100 shadow">
+                <div class="card-body">
+                    <form id="addTaskForm">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Task Title</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="newTaskTitle"
+                                required placeholder="e.g., Read a Book">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Description</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="newTaskDesc"
+                                placeholder="e.g., Read 10 pages">
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted">Icon (Emoji)</label>
+                                <input type="text" class="form-control bg-secondary text-white border-0"
+                                    id="newTaskIcon" value="⭐" maxlength="2">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label text-muted">XP Reward</label>
+                                <input type="number" class="form-control bg-secondary text-white border-0"
+                                    id="newTaskXP" value="50">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold">➕ Add Task</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- HERO VIEW -->
+<div class="container-fluid h-100">
+    <div class="row h-100 align-items-center justify-content-center p-3 p-md-5">
+
+        <!-- LEFT COLUMN: Quests -->
+        <div class="col-md-5 col-lg-4 d-flex flex-column h-100 justify-content-center">
+
+            <div class="quest-card bg-white text-dark p-3 rounded-xl mb-4 shadow position-relative">
+                <div class="zorp-icon-small">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Zorp&backgroundColor=b6e3f4" alt="Zorp">
+                </div>
+                <h4 class="mb-1 text-center fw-bold">Zorp's Daily Quests!</h4>
+
+                <div class="progress-container mt-3">
+                    <div class="d-flex justify-content-between x-small">
+                        <span class="fw-bold">{{ hero.completed }}/{{ hero.total }} Quests Complete</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 10px; border-radius: 5px; background: #e0e0e0;">
+                        {% set percent = (hero.completed / hero.total * 100) if hero.total > 0 else 0 %}
+                        {% set style_attr = 'style="width: ' ~ percent ~ '%;"' %}
+                        <div class="progress-bar bg-warning" role="progressbar" {{ style_attr | safe }}></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quest-list custom-scrollbar">
+                {% for quest in quests %}
+                <div
+                    class="quest-item mb-3 
+                    {% if quest.status == 'completed' %}completed{% elif quest.status == 'locked' %}locked{% else %}active{% endif %}">
+
+                    <div class="d-flex align-items-center p-3 rounded-lg shadow-sm 
+                        {% if quest.status == 'completed' %}bg-white text-dark
+                        {% elif quest.status == 'locked' %}bg-locked text-muted
+                        {% else %}bg-active text-dark{% endif %}">
+
+                        <div class="fs-2 me-3">{{ quest.icon }}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 fw-bold">{{ quest.title }}</h6>
+                        </div>
+
+                        <div class="status-icon fs-5">
+                            {% if quest.status == 'completed' %} ✅
+                            {% elif quest.status == 'locked' %} 🔒
+                            {% else %} <!-- active pending state later --> {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button class="btn btn-dark btn-lg w-100 rounded-pill mt-4 shadow fw-bold">Start Quest</button>
+        </div>
+
+        <!-- CENTER COLUMN: Action Hub -->
+        <div class="col-md-7 col-lg-6 d-flex flex-column align-items-center justify-content-center h-100 px-lg-5 center-column"
+            style="position: relative;">
+
+            <div class="zorp-icon-medium mb-3 float-animation">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Zorp&backgroundColor=b6e3f4" alt="Zorp">
+            </div>
+
+            <div class="action-card rounded-4 p-4 shadow-lg w-100 text-center text-white d-flex flex-column align-items-center"
+                style="background: linear-gradient(180deg, #2c3e50, #1a252f);">
+                <h4 class="mb-4 fw-bold">Gear Up! Shake the Grumbles Away!</h4>
+
+                <!-- Rocket Meter -->
+                <div class="rocket-meter-container position-relative mb-4">
+                    <span class="zing text-warning fw-bold position-absolute"
+                        style="left: -40px; top: 40%;">ZING!</span>
+                    <span class="whoosh text-info fw-bold position-absolute"
+                        style="right: -60px; top: 60%;">WHOOSH!</span>
+
+                    <!-- Circle Meter SVG -->
+                    <div class="meter-circle">
+                        <!-- Simulated Liquid / Progress (CSS driven) -->
+                        {% set style_attr2 = 'style="height: ' ~ percent ~ '%;"' %}
+                        <div class="liquid" {{ style_attr2 | safe }}></div>
+                        <div class="rocket-overlay">🚀</div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Take a photo to fill rocket! 🚀</h5>
+
+                <!-- Upload form for active quest -->
+                {% set active_quest = quests | selectattr("status", "equalto", "active") | first %}
+
+                {% if active_quest %}
+                <form id="uploadForm" class="w-100">
+                    <input type="hidden" name="quest_id" value="{{ active_quest.id }}">
+                    <label for="photoUpload"
+                        class="btn btn-primary rounded-circle shadow-lg mb-2 p-3 d-flex align-items-center justify-content-center mx-auto"
+                        style="width:70px; height:70px; cursor: pointer;">
+                        📸
+                    </label>
+                    <input type="file" id="photoUpload" name="file" class="d-none" accept="image/*,video/*">
+                    <p class="small text-muted mb-0">{{ active_quest.title }}</p>
+                </form>
+
+                <!-- Sticker Tray (Hidden until upload) -->
+                <div id="stickerTray" class="d-none mt-3 p-3 bg-dark rounded-4 w-100">
+                    <p class="small mb-2">Seal it with a sticker!</p>
+                    <div class="d-flex justify-content-around">
+                        <button class="btn btn-sm btn-light sticker-btn fs-4 rounded-circle">⭐</button>
+                        <button class="btn btn-sm btn-light sticker-btn fs-4 rounded-circle">🛡️</button>
+                        <button class="btn btn-sm btn-light sticker-btn fs-4 rounded-circle">🔥</button>
+                    </div>
+                </div>
+                <div id="uploadPreview" class="mt-3 w-100 d-none"
+                    style="position:relative; height: 150px; border-radius: 10px; overflow: hidden;">
+                    <img id="previewImg" src="" style="width:100%; height:100%; object-fit:contain; background:#000;">
+                    <div id="previewSticker"
+                        style="position:absolute; bottom:10px; right:10px; font-size:30px; display:none;"></div>
+                </div>
+                <button id="submitQuestBtn" class="btn btn-success w-100 mt-3 d-none fw-bold" disabled>Submit
+                    Quest!</button>
+                {% else %}
+                <div class="alert alert-success p-2 w-100 rounded-pill">All Quests Done! 🎉</div>
+                {% endif %}
+
+            </div>
+
+            <p class="mt-4 text-center x-small text-muted" style="max-width: 250px;">
+                <span class="fs-6 me-1">✔️</span> I'm a AI buddy, not doctor. Always ask grow-up for big worries.
+            </p>
+        </div>
+
+
+
+    </div>
+</div>
+
+<!-- Modal for PIN -->
+<div class="modal fade" id="pinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Parent Access needed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if not has_pin %}
+                <p class="small text-muted">You haven't set a PIN yet. Please create a Parent PIN (at least 4
+                    characters).</p>
+                <input type="password" id="pinInput" class="form-control" placeholder="Create your PIN">
+                {% else %}
+                <input type="password" id="pinInput" class="form-control" placeholder="Enter your Parent PIN">
+                {% endif %}
+                <p id="pinError" class="text-danger mt-2 d-none small">Invalid PIN.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submitPinBtn">Access Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
