@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Speech Practice - Neuro Plus{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/speech.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="sp-container">
+
+    <div class="sp-main">
+        <h1 style="font-size: xx-large; font-weight:bold;">Read the words☺️</h1>
+        <div class="buddy-box">
+            <div class="buddy-msg" id="buddy-msg">
+                Hey {{ current_user.name }}! Read the words then click on the cards to know their meanings.
+            </div>
+        </div>
+        <div style="border-style:dotted;border-radius:10px;border-color:#0F6E56">
+            <div class="exercise-box" >
+                <div class="Controls">
+                    <button onclick="prevCard()" class="button"><i class="fa-solid fa-angle-left"></i></button>
+                </div>
+                <div class="flip-card" id="flip">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" id="cardFront"></div>
+                        <div class="flip-card-back" id="cardBack"></div>
+                    </div>
+                </div>
+                <div class="Controls">
+                    <button onclick="nextCard()" class="button"><i class="fa-solid fa-angle-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const cards=[
+        {
+            word:"Poodle Dog",
+            image:"🐩"
+        },
+        {
+            word:"Black Cat",
+            image: "🐈‍⬛"
+        },
+        {
+            word: "Fried Egg",
+            image: "🍳"
+        },
+        {
+            word:"Ice Cream",
+            image: "🍨"
+        },
+        {
+            word:"Rocket",
+            image: "🚀"
+        }
+    ]
+    let current=0;
+    const flipCard = document.getElementById("flip");
+    const cardFront = document.getElementById("cardFront");
+    const cardBack = document.getElementById("cardBack");
+
+    flipCard.addEventListener("click",()=>{
+        flipCard.classList.toggle("flipped");
+    });
+    function nextCard() {
+        if (current < cards.length - 1) {
+            current++;
+            render();
+        }
+        if(current==cards.length-1){
+            current=0;
+            render();
+        }
+    }
+
+    function prevCard() {
+        if (current > 0) {
+            current--;
+            render();
+        }
+        if(current==0){
+            current=cards.length -1;
+            render();
+        }
+    }
+    function render(){
+        cardFront.textContent=cards[current].word;
+        cardBack.textContent=cards[current].image;
+        flip.classList.remove("flipped");
+    }
+    render();
+</script>
+{% endblock %}
