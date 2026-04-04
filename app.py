@@ -107,13 +107,19 @@ def dashboard():
 @app.route('/parent-dashboard')
 @login_required
 def parent_dashboard():
-    return "Parent Dashboard coming soon."
+    return render_template('pdashboard.html')
 
 
 @app.route('/teacher-dashboard')
 @login_required
 def teacher_dashboard():
     return "Teacher Dashboard coming soon."
+
+@app.route('/reading')
+@login_required
+def reading():
+    return render_template('reading.html')
+
 
 
 # ── Speech Practice Routes ──
@@ -131,9 +137,7 @@ def speech():
     all_scores = SpeechScore.query.filter_by(
         user_id=current_user.id
     ).order_by(SpeechScore.date.desc()).all()
-
     best_score = max((s.score for s in all_scores), default=0)
-
     # Calculate streak
     streak = 0
     check = today
