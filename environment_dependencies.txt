@@ -1,0 +1,6 @@
+Flask
+Pillow
+python-dotenv
+ExifRead
+pymediainfo
+Werkzeug
