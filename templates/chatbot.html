@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Home - Neuro Plus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/speech.css') }}">
+{% endblock %}
+
+{% block content %}
+<div >
+    <div style="height: 650px;">
+        <div>
+            <h1 style="font-size:xx-large;font-weight: bold; padding-left: 30px; padding-top: 10px;">Buddy Bot</h1>
+        </div>
+        <div id="chat-box" style="padding-bottom:10px;"></div>
+    </div>
+</div>
+<script>
+function addMessage(text, sender) {
+    const chatBox = document.getElementById("chat-box");
+
+    const msg = document.createElement("div");
+    msg.classList.add("message", sender);
+    msg.innerText = text;
+
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function sendMessage() {
+    const input = document.getElementById("user-input");
+    const text = input.value;
+
+    if (!text.trim()) return;
+
+    addMessage(text, "user");
+
+    fetch("/get_response", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        addMessage(data.reply, "bot");
+    });
+
+    input.value = "";
+}
+</script>
+<footer>
+    <div class="input-area" style="position:fixed; width:1400px;">
+        <input type="text" id="user-input" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</footer>
+{% endblock %}

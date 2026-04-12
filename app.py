@@ -3,7 +3,32 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from datetime import date, timedelta
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from groq import Groq
 
+load_dotenv(Path(__file__).with_name(".env"))
+
+groq_api_key = os.getenv("API_KEY") or os.getenv("API_KEY")
+
+if not groq_api_key:
+    raise RuntimeError("Missing GROQ_API_KEY in .env")
+
+client = Groq(api_key=groq_api_key)
+
+def user_reply(user_message):
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "user", "content": user_message}
+            ],
+            model="llama-3.1-8b-instant"
+        )
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        return f"Error: {str(e)}"
+    
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'neuroplus-secret-key'
@@ -13,7 +38,6 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-
 
 # ── Models ──
 
@@ -43,6 +67,14 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
+@app.route("/get_response", methods=["POST"])
+def get_response():
+    data = request.get_json()
+    user_message = data.get("message")
+
+    reply = user_reply(user_message)
+
+    return jsonify({"reply": reply})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -102,6 +134,11 @@ def logout():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/chatbot')
+@login_required
+def chatbot():
+    return render_template('chatbot.html')
 
 
 @app.route('/parent-dashboard')
