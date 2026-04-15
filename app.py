@@ -67,15 +67,6 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
-@app.route("/get_response", methods=["POST"])
-def get_response():
-    data = request.get_json()
-    user_message = data.get("message")
-
-    reply = user_reply(user_message)
-
-    return jsonify({"reply": reply})
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -134,6 +125,62 @@ def logout():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+
+emotion_emoji = {
+    "happy": '😊',
+    "sad": '🙁',
+    "anxious": '😖',
+    "depressed": '☹️',
+    "angry": '😡',
+    "stressed": '🫨',
+    "peaceful": '😌',
+    "neutral": '😐'
+}
+def detect_mood_llm(user_message):
+    try:
+        prompt = f"""
+        Classify the emotion of the following message.
+
+        Message: "{user_message}"
+
+        Choose ONLY ONE emotion from this list:
+        happy, sad, anxious, depressed, angry, stressed, peaceful, neutral
+
+        Return ONLY the emotion word.
+        """
+
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.1-8b-instant"
+        )
+
+        mood = chat_completion.choices[0].message.content.strip().lower()
+
+        # safety fallback
+        if mood not in emotion_emoji:
+            mood = "neutral"
+
+        return mood
+
+    except Exception as e:
+        print("Mood detection error:", e)
+        return "neutral"
+
+@app.route("/get_response", methods=["POST"])
+def get_response():
+    data = request.get_json()
+    user_message = data.get("message")
+
+    reply = user_reply(user_message)
+    mood = detect_mood_llm(user_message)
+    emoji = emotion_emoji.get(mood, "😐")
+
+    return jsonify({
+        "reply": reply,
+        "mood": mood,
+        "emoji": emoji
+    })
 
 @app.route('/chatbot')
 @login_required
