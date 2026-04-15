@@ -3,17 +3,52 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/speech.css') }}">
+
+<style>
+/* 🔥 Mood heatmap styling */
+#mood-map {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    padding: 20px;
+}
+
+.mood-cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border-radius: 8px;
+    background: #eee;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div >
-    <div style="height: 650px;">
+<div class="main-container" style="display: flex;">
+    
+    <!-- CHAT SECTION -->
+    <div style="height: 650px; width: 1200px;">
         <div>
             <h1 style="font-size:xx-large;font-weight: bold; padding-left: 30px; padding-top: 10px;">Buddy Bot</h1>
         </div>
         <div id="chat-box" style="padding-bottom:10px;"></div>
     </div>
+
+    <!-- MOOD MAP -->
+    <div style="height: 650px; border-left:5px;">
+        <div>
+            <h1 style="font-size:xx-large;font-weight: bold; padding-left: 30px; padding-top: 10px;">Mood Map</h1>
+        </div>
+
+        <!-- 🔥 THIS is your heatmap -->
+        <div id="mood-map" style="padding-bottom:10px;"></div>
+    </div>
+
 </div>
+
 <script>
 function addMessage(text, sender) {
     const chatBox = document.getElementById("chat-box");
@@ -24,6 +59,35 @@ function addMessage(text, sender) {
 
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 🔥 NEW FUNCTION: update heatmap
+function updateMoodMap(emoji) {
+    const moodMap = document.getElementById("mood-map");
+
+    const cell = document.createElement("div");
+    cell.classList.add("mood-cell");
+    cell.innerText = emoji;
+
+    // 🎨 color mapping
+    const colorMap = {
+        "😊": "#E3BCF5",
+        "😌": "#F5BCF0",
+        "😐": "#BEF5BC",
+        "🙁": "#BCE3F5",
+        "😖": "#F4F5BC",
+        "☹️": "#f1948a",
+        "😡": "#F5BCBC"
+    };
+
+    cell.style.background = colorMap[emoji] || "#eee";
+
+    moodMap.appendChild(cell);
+
+    // optional limit
+    if (moodMap.children.length > 70) {
+        moodMap.removeChild(moodMap.firstChild);
+    }
 }
 
 function sendMessage() {
@@ -43,16 +107,21 @@ function sendMessage() {
     })
     .then(res => res.json())
     .then(data => {
-        addMessage(data.reply, "bot");
+        // ✅ show emoji with reply
+        addMessage(data.reply + " " + data.emoji, "bot");
+
+        // 🔥 update heatmap
+        updateMoodMap(data.emoji);
     });
 
     input.value = "";
 }
 </script>
-<footer>
-    <div class="input-area" style="position:fixed; width:1400px;">
-        <input type="text" id="user-input" placeholder="Type a message..." />
-        <button onclick="sendMessage()">Send</button>
-    </div>
-</footer>
+
+<!-- INPUT -->
+<div class="input-area" style="position:fixed; width:1000px;">
+    <input type="text" id="user-input" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+</div>
+
 {% endblock %}
